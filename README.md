@@ -22,7 +22,7 @@ Composer
 
 Via Composer:
 
-composer require ericpereira-br/idsy-tools
+composer require idsy/tools
 
 🔧 Como usar
 🔹 Convert (Métodos estáticos)
