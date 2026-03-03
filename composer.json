@@ -1,0 +1,22 @@
+{
+    "name": "idsy/tools",
+    "description": "Tools(Convert, Create, Email e Validade)",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "ERIC PEREIRA",
+            "email": "eric.pereira.swp@outlook.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Idsy\\Tools\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=8.0",
+        "endroid/qr-code": "^6.0",
+        "phpmailer/phpmailer": "^6.9"        
+	}
+}
