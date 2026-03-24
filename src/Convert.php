@@ -146,4 +146,33 @@ class Convert
 
         return $masked . '@' . $domain;
     }
+
+    static function jsonToChave(string $json, string $chave): ?string
+    {
+        $dados = json_decode($json, true);
+
+        return self::percorrerJson($dados, $chave);
+    }
+
+    private static function percorrerJson($array, $chave): ?string
+    {
+        if (!is_array($array)) {
+            return null;
+        }
+
+        foreach ($array as $ch => $valor) {
+            if (strtoupper($ch) === strtoupper($chave)) {
+                return is_scalar($valor) ? (string)$valor : json_encode($valor);
+            }
+
+            if (is_array($valor)) {
+                $resultado = self::percorrerJson($valor, $chave);
+                if ($resultado !== null) {
+                    return $resultado;
+                }
+            }
+        }
+
+        return null;
+    }
 }
