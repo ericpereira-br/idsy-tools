@@ -151,7 +151,13 @@ class Convert
     {
         $dados = json_decode($json, true);
 
-        return self::percorrerJson($dados, $chave);
+        $resultado = self::percorrerJson($dados, $chave);
+
+        if ($resultado !== null) {
+            return $resultado;
+        } else {
+            return '';
+        }
     }
 
     private static function percorrerJson($array, $chave): ?string
