@@ -147,32 +147,15 @@ class Convert
         return $masked . '@' . $domain;
     }
 
-    static function jsonToChave(string $json, string $chave): ?string
+    public static function arrayToValue(array $array, string $chave): mixed
     {
-        $dados = json_decode($json, true);
-
-        $resultado = self::percorrerJson($dados, $chave);
-
-        if ($resultado !== null) {
-            return $resultado;
-        } else {
-            return '';
-        }
-    }
-
-    private static function percorrerJson($array, $chave): ?string
-    {
-        if (!is_array($array)) {
-            return null;
-        }
-
         foreach ($array as $ch => $valor) {
             if (strtoupper($ch) === strtoupper($chave)) {
-                return is_scalar($valor) ? (string)$valor : json_encode($valor);
+                return $valor;
             }
 
             if (is_array($valor)) {
-                $resultado = self::percorrerJson($valor, $chave);
+                $resultado = self::arrayToValue($valor, $chave);
                 if ($resultado !== null) {
                     return $resultado;
                 }
@@ -180,5 +163,16 @@ class Convert
         }
 
         return null;
+    }
+
+    static function jsonToValue(string $json, string $chave): mixed
+    {
+        $dados = json_decode($json, true);
+
+        if (!is_array($dados)) {
+            return null;
+        }
+
+        return self::arrayToValue($dados, $chave);
     }
 }
