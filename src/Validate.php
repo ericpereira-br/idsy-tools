@@ -1,7 +1,11 @@
 <?php
+
 namespace Idsy\Tools;
 
-class Validate {
+use DateTime;
+
+class Validate
+{
     static function base64(string $img): bool
     {
         if (isset($img) == false) {
@@ -37,8 +41,28 @@ class Validate {
 
     static function date(string $date, string $format = 'Y-m-d'): bool
     {
-        $d = \DateTime::createFromFormat($format, $date);
-        return $d && $d->format($format) === $date;
+        if (empty($date)) {
+            return false;
+        }
+
+        $formatos = [
+            'd/m/Y',
+            'Y-m-d',
+            'd-m-Y',
+            'Y-m-d H:i:s'
+        ];
+
+        foreach ($formatos as $formato) {
+            $date = DateTime::createFromFormat($formato, $date);
+
+            if ($date && $date->format($formato) === $date) {
+                $partes = date_parse($date->format('Y-m-d'));
+
+                return checkdate($partes['month'], $partes['day'], $partes['year']);
+            }
+        }
+
+        return false;
     }
 
     static function cpf(string $document): bool
@@ -238,23 +262,20 @@ class Validate {
         $expiraEm  = $criacaoTs + $expiracao;
         $expirou = time() > $expiraEm;
         return !$expirou;
-    }   
-    
+    }
+
     public static function json(string $string): bool
     {
         json_decode($string);
         return (json_last_error() === JSON_ERROR_NONE);
-    }     
+    }
 
-        public static function getIp()
-        {
-            if ((empty($_SERVER['REMOTE_ADDR']) == false) && (isset($_SERVER['REMOTE_ADDR']) == true))
-            {
-                return $_SERVER['REMOTE_ADDR'];
-            }
-            else
-            {
-                throw new \Exception('IP do cliente não encontrado!');        
-            }   
-        }      
+    public static function getIp()
+    {
+        if ((empty($_SERVER['REMOTE_ADDR']) == false) && (isset($_SERVER['REMOTE_ADDR']) == true)) {
+            return $_SERVER['REMOTE_ADDR'];
+        } else {
+            throw new \Exception('IP do cliente não encontrado!');
+        }
+    }
 }

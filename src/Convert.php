@@ -3,6 +3,7 @@
 namespace Idsy\Tools;
 
 use DateTime;
+use Idsy\Tools\Validate;
 
 class Convert
 {
@@ -181,6 +182,10 @@ class Convert
     static function dateToMysql(?string $date): ?string
     {
         if (empty($date)) {
+            return null;
+        }
+
+        if (Validate::date($date) === false) {
             return null;
         }
 
