@@ -2,6 +2,8 @@
 
 namespace Idsy\Tools;
 
+use DateTime;
+
 class Convert
 {
     public static function onlyNumber(string $value): null|int
@@ -174,5 +176,28 @@ class Convert
         }
 
         return self::arrayToValue($dados, $chave);
+    }
+
+    static function dateToMysql(?string $date): ?string
+    {
+        if (empty($date)) {
+            return null;
+        }
+
+        // Já está no formato MySQL?
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return $date;
+        }
+
+        // Formato brasileiro
+        if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $date)) {
+            $result = DateTime::createFromFormat('d/m/Y', $date);
+
+            if ($result && $result->format('d/m/Y') === $date) {
+                return $result->format('Y-m-d');
+            }
+        }
+
+        return null; // ou exception
     }
 }

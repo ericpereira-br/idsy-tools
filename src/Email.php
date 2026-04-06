@@ -61,6 +61,7 @@ class Email
 
         try {
             //Server settings
+            $mail->CharSet = 'UTF-8';
             $mail->SMTPDebug = SMTP::DEBUG_SERVER;                      //Enable verbose debug output
             $mail->isSMTP();                                            //Send using SMTP
             $mail->Host       = $this->host;                            //Set the SMTP server to send through
