@@ -39,7 +39,7 @@ class Validate
         return filter_var($value, FILTER_VALIDATE_URL) !== false;
     }
 
-    static function date(string $date, string $format = 'Y-m-d'): bool
+    static function date(string $date): bool
     {
         if (empty($date)) {
             return false;
