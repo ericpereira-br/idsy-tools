@@ -39,9 +39,13 @@ class Validate
         return filter_var($value, FILTER_VALIDATE_URL) !== false;
     }
 
-    static function date(string $date): bool
+    static function date(mixed $date): bool
     {
-        if (empty($date)) {
+        if ($date instanceof \DateTime) {
+            return true;
+        }
+
+        if (empty($date) || !is_string($date)) {
             return false;
         }
 
@@ -53,12 +57,10 @@ class Validate
         ];
 
         foreach ($formatos as $formato) {
-            $date = DateTime::createFromFormat($formato, $date);
+            $d = \DateTime::createFromFormat($formato, $date);
 
-            if ($date && $date->format($formato) === $date) {
-                $partes = date_parse($date->format('Y-m-d'));
-
-                return checkdate($partes['month'], $partes['day'], $partes['year']);
+            if ($d && $d->format($formato) === $date) {
+                return true;
             }
         }
 

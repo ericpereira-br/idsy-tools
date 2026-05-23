@@ -179,9 +179,13 @@ class Convert
         return self::arrayToValue($dados, $chave);
     }
 
-    static function dateToMysql(?string $date): ?string
+    static function dateToMysql(mixed $date): ?string
     {
-        if (empty($date)) {
+        if ($date instanceof \DateTime) {
+            return $date->format('Y-m-d');
+        }
+
+        if (empty($date) || !is_string($date)) {
             return null;
         }
 
