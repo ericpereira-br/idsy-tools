@@ -144,7 +144,7 @@ class Convert
         } else {
             $start = substr($name, 0, 2);
             $end = substr($name, -2);
-            $masked = $start . str_repeat('*', $length - 4) . $end;
+            $masked = $start . str_repeat('*', max(0, $length - 4)) . $end;
         }
 
         return $masked . '@' . $domain;
