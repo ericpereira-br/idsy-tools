@@ -142,9 +142,10 @@ class Convert
         if ($length <= 2) {
             $masked = str_repeat('*', $length);
         } else {
-            $start = substr($name, 0, 2);
-            $end = substr($name, -2);
-            $masked = $start . str_repeat('*', max(0, $length - 4)) . $end;
+            $visible = min(2, intdiv($length - 1, 2));
+            $start = substr($name, 0, $visible);
+            $end = substr($name, -$visible);
+            $masked = $start . str_repeat('*', $length - 2 * $visible) . $end;
         }
 
         return $masked . '@' . $domain;
