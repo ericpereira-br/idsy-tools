@@ -133,4 +133,56 @@ class Create
         $base64 = "data:image/jpeg;base64," . base64_encode($result->getString());
         return $base64;
     }
+
+    public static function saveBase64Jpeg(string $base64, string $arquivo, int $qualidade = 90): bool
+    {
+        // A conversão depende da extensão GD
+        if (!extension_loaded('gd')) {
+            return false;
+        }
+
+        // Remove o cabeçalho data URI, se existir (ex.: "data:image/png;base64,...")
+        if (str_contains($base64, ',')) {
+            $base64 = explode(',', $base64, 2)[1];
+        }
+
+        $dados = base64_decode($base64, true);
+        if ($dados === false) {
+            return false;
+        }
+
+        // Entrada externa: suprime o warning e trata o retorno
+        $imagem = @imagecreatefromstring($dados);
+        if ($imagem === false) {
+            return false;
+        }
+
+        // Cria diretório, tratando falha e concorrência
+        $diretorio = dirname($arquivo);
+        if (!is_dir($diretorio) && !mkdir($diretorio, 0755, true) && !is_dir($diretorio)) {
+            imagedestroy($imagem);
+            return false;
+        }
+
+        // Fundo branco para achatar transparência (PNG/WebP) — evita áreas pretas no JPEG
+        $jpeg = imagecreatetruecolor(imagesx($imagem), imagesy($imagem));
+        if ($jpeg === false) {
+            imagedestroy($imagem);
+            return false;
+        }
+
+        imagealphablending($jpeg, true); // mescla pixels alfa sobre o branco
+        $branco = imagecolorallocate($jpeg, 255, 255, 255);
+        imagefill($jpeg, 0, 0, $branco);
+        imagecopy($jpeg, $imagem, 0, 0, 0, 0, imagesx($imagem), imagesy($imagem));
+
+        $qualidade = max(0, min(100, $qualidade));
+        $resultado = imagejpeg($jpeg, $arquivo, $qualidade);
+
+        imagedestroy($jpeg);
+        imagedestroy($imagem);
+
+        // imagejpeg pode retornar true sem o arquivo existir de fato
+        return $resultado && is_file($arquivo);
+    }    
 }
