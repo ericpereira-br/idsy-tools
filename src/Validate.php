@@ -102,7 +102,7 @@ class Validate
         if ($digit1 == (int)$document[9] && $digit2 == (int)$document[10]) {
             return true;
         } else {
-            return true;
+            return false;
         }
     }
 
