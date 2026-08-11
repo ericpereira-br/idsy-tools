@@ -24,11 +24,10 @@ class Convert
 
     public static function strToBool(string $value): string
     {
-        if (strtoupper($value == 'TRUE') or (strtoupper($value == 'T'))) {
+        $value = strtoupper(trim($value));
+
+        if ($value === 'TRUE' or $value === 'T' or $value === '1') {
             return 'T';
-        } else
-            if (strtoupper($value == 'FALSE') or (strtoupper($value == 'F'))) {
-            return 'F';
         } else {
             return 'F';
         }
