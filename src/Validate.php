@@ -67,6 +67,95 @@ class Validate
         return false;
     }
 
+    /**
+     * Formatos de data que esta classe entende. Mesma lista do date(), num lugar so.
+     */
+    private const FORMATOS_DATA = ['d/m/Y', 'Y-m-d', 'd-m-Y', 'Y-m-d H:i:s'];
+
+    /**
+     * Devolve a data como objeto, ou null quando nao da para ler.
+     *
+     * Existe para o dateRange e o dateOrder nao precisarem repetir o laco de formatos, e
+     * para nao depender do Convert::dateToMysql, que aceita menos formatos que o date()
+     * desta classe -- usar ele faria 'd-m-Y' valer no date() e nao valer no dateRange.
+     */
+    private static function dateObject(mixed $date): ?\DateTime
+    {
+        if ($date instanceof \DateTime) {
+            return $date;
+        }
+
+        if (empty($date) || !is_string($date)) {
+            return null;
+        }
+
+        foreach (Validate::FORMATOS_DATA as $formato) {
+            $result = \DateTime::createFromFormat($formato, $date);
+
+            if ($result && $result->format($formato) === $date) {
+                return $result;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Data valida E dentro de uma faixa que faz sentido.
+     *
+     * O date() acima confere o FORMATO: '1000-01-01' passa por ele, porque e um Y-m-d
+     * legitimo. Era por isso que um cadastro aceitava obra comecando no ano 1000 -- o
+     * formato estava certo, a data e que nao existia no mundo.
+     *
+     * A faixa vai de $anoMinimo ate $anosAFrente anos a frente de hoje. Quinze anos a
+     * frente porque passaporte e CNH valem dez, e previsao de termino de obra estica.
+     *
+     * Vazio devolve false, igual ao date(): campo opcional em branco e assunto de
+     * obrigatoriedade, e quem chama e que sabe se aquele campo e obrigatorio.
+     *
+     * @param mixed $date Data em d/m/Y, Y-m-d, d-m-Y, Y-m-d H:i:s ou DateTime.
+     * @param int $anoMinimo Primeiro ano aceito.
+     * @param int $anosAFrente Quantos anos a frente de hoje ainda sao aceitos.
+     */
+    static function dateRange(mixed $date, int $anoMinimo = 1900, int $anosAFrente = 15): bool
+    {
+        $result = Validate::dateObject($date);
+
+        if ($result === null) {
+            return false;
+        }
+
+        $ano = (int)$result->format('Y');
+
+        return ($ano >= $anoMinimo) && ($ano <= ((int)date('Y') + $anosAFrente));
+    }
+
+    /**
+     * A segunda data nao vem antes da primeira.
+     *
+     * Para par que tem ordem obrigatoria: inicio e fim de obra, data do pedido e entrega
+     * prevista, emissao e validade de documento.
+     *
+     * Falta uma das duas devolve TRUE: nao ha ordem para conferir com uma ponta so, e
+     * recusar ali tiraria do cadastro o direito de preencher apenas o que ja se sabe.
+     * Data ilegivel devolve false -- isso e problema de formato, nao de ordem.
+     */
+    static function dateOrder(mixed $de, mixed $ate): bool
+    {
+        if ((empty($de) == true) || (empty($ate) == true)) {
+            return true;
+        }
+
+        $inicio = Validate::dateObject($de);
+        $fim = Validate::dateObject($ate);
+
+        if (($inicio === null) || ($fim === null)) {
+            return false;
+        }
+
+        return $fim >= $inicio;
+    }
+
     static function cpf(string $document): bool
     {
         // Remove caracteres não numéricos
@@ -256,6 +345,24 @@ class Validate
         } else {
             return false;
         }
+    }
+
+    /**
+     * Numero de tamanho exato, so digitos.
+     *
+     * Para campo que e codigo e nao conta: ISPB tem 8 digitos e o codigo COMPE de banco
+     * tem 3. Sem isto, um banco entrava no cadastro com ISPB "efg".
+     *
+     * @param string $value Valor como foi digitado.
+     * @param int $quantidade Quantos digitos, exatamente.
+     */
+    static function digits(string $value, int $quantidade): bool
+    {
+        if ($quantidade <= 0) {
+            return false;
+        }
+
+        return preg_match('/^[0-9]{' . $quantidade . '}$/', trim($value)) === 1;
     }
 
     public static function pix($criacao, $expiracao): bool
