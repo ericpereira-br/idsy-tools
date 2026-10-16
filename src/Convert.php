@@ -33,17 +33,67 @@ class Convert
         }
     }
 
-    public static function dataToType(string $value, $type)
+    /**
+     * Inteiro estrito: aceita int ou texto só com dígitos (e sinal). Vazio ou null viram
+     * $vazio, que é o "registro novo" dos clientes que mandam id em branco.
+     *
+     * Existe ao lado do onlyNumber de propósito: o onlyNumber limpa tudo que não é dígito,
+     * então "abc" vira 0 (um id que significa inserir), "-5" vira 5 e "1.5" vira 15. Para
+     * id, isso grava registro errado em vez de recusar a chamada.
+     *
+     * @throws \InvalidArgumentException valor que não é inteiro
+     */
+    public static function toInt(mixed $value, int $vazio = 0): int
     {
-        if (strtoupper($type) == 'JSON') {
-            return json_decode($value);
-        } else
-            if (strtoupper($type) == 'TEXT') {
+        if (($value === null) || ($value === '')) {
+            return $vazio;
+        }
+
+        if (is_int($value)) {
             return $value;
         }
-        if (strtoupper($type) == 'NUMBER') {
+
+        if (is_string($value) && (preg_match('/^\s*-?\d+\s*$/', $value) === 1)) {
+            return (int)trim($value);
+        }
+
+        throw new \InvalidArgumentException('Valor inteiro inválido: ' . substr(var_export($value, true), 0, 30));
+    }
+
+    /**
+     * Valor vazio ou tipo vazio devolvem null: é o "não veio nada" que quem chama já trata
+     * com isset. JSON malformado e tipo desconhecido lançam exceção; antes viravam null
+     * calado e o erro só aparecia depois, como "ID not found!".
+     *
+     * @throws \InvalidArgumentException JSON inválido ou tipo desconhecido
+     */
+    public static function dataToType(string $value, $type): mixed
+    {
+        $type = strtoupper(trim((string)$type));
+
+        if (($type === '') || ($value === '')) {
+            return null;
+        }
+
+        if ($type === 'JSON') {
+            $result = json_decode($value);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \InvalidArgumentException('JSON inválido: ' . json_last_error_msg());
+            }
+
+            return $result;
+        }
+
+        if ($type === 'TEXT') {
+            return $value;
+        }
+
+        if ($type === 'NUMBER') {
             return Convert::onlyNumber($value);
         }
+
+        throw new \InvalidArgumentException('Tipo de dado desconhecido: ' . $type);
     }
 
     static function strToFloat(string $valor): float

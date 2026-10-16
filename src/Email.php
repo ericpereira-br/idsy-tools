@@ -19,7 +19,7 @@ class Email
     public string $password = '';
     public int $port = 465;
 
-    private function validate()
+    private function validate(): void
     {
         if ($this->from == '') {
             throw new Exception('Email "from" field is empty.');
@@ -54,7 +54,7 @@ class Email
         };
     }
 
-    public function send()
+    public function send(): void
     {
         $this->validate();
         $mail = new PHPMailer;
@@ -62,7 +62,9 @@ class Email
         try {
             //Server settings
             $mail->CharSet = 'UTF-8';
-            $mail->SMTPDebug = SMTP::DEBUG_SERVER;                      //Enable verbose debug output
+            // DEBUG_SERVER gravava a conversa SMTP no error_log, com o corpo do e-mail: o código
+            // de 2 fatores e a chave de acesso ficavam legíveis no log. Ligar só para depurar.
+            $mail->SMTPDebug = SMTP::DEBUG_OFF;
             $mail->isSMTP();                                            //Send using SMTP
             $mail->Host       = $this->host;                            //Set the SMTP server to send through
             $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
